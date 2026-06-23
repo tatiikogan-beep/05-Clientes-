@@ -682,7 +682,7 @@ function buildTabHTML(tabKey, label, data) {
             <ul class="nat-list">${natHtml}</ul>
             <div style="margin-top:18px;">
               <div class="col-ttl">Pedidos — Distribuição (%)</div>
-              <div style="position:relative;height:160px;"><canvas id="ped-chart-${tabKey}-${i}"></canvas></div>
+              <div style="position:relative;height:185px;"><canvas id="ped-chart-${tabKey}-${i}"></canvas></div>
             </div>
           </div>
           <div class="grp-col">
@@ -811,11 +811,13 @@ function buildPedChart(tabKey, idx, pedidos) {
       indexAxis: 'x',
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { top: 22 } },
       plugins:{
         legend:{ display:false },
         datalabels:{
           display: true,
           anchor:'end', align:'top',
+          clip: false,
           color:'var(--ink-700)',
           font:{ family:'IBM Plex Mono', size:9, weight:'500' },
           formatter: v => v.toFixed(0)+'%'
