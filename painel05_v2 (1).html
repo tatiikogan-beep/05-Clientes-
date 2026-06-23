@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel 05 — Clientes com Mais Processos · IGSA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@0,600;1,400&family=Libre+Franklin:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --wine-800:#4E1219;--wine-700:#651823;--wine-600:#7E1F2C;--wine-500:#9E3340;
+  --wine-300:#D8868E;--wine-100:#F6DBD0;--wine-50:#FDF5F3;
+  --gold-600:#8E6E1C;--gold-500:#B08A28;--gold-400:#CDA736;
+  --gold-200:#EBD58A;--gold-100:#F5EAB8;--gold-50:#FBF6E7;
+  --green-500:#2E9E5B;--green-100:#D4F0E2;
+  --sand-200:#EDE5D8;--sand-100:#F7F2E9;--sand-50:#FDFAF5;
+  --border:#E5DAC7;--border-strong:#C8B89A;
+  --ink-900:#2A2420;--ink-700:#4A3E38;--ink-500:#6B5E57;--ink-300:#9E8E87;--ink-100:#C8BAB4;
+  --card:#FFFFFF;
+  --shadow-xs:0 1px 2px rgba(90,40,30,.06);
+  --shadow-sm:0 1px 4px rgba(90,40,30,.08),0 0 0 1px var(--border);
+  --shadow-md:0 4px 16px rgba(90,40,30,.10),0 0 0 1px var(--border);
+  --r-lg:12px;--r-md:8px;--r-sm:5px;--r-xs:3px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:var(--ink-900);font-size:14px;line-height:1.5;min-height:100vh;}
+
+/* ── HEADER */
+.hdr{background:linear-gradient(135deg,var(--wine-800) 0%,var(--wine-700) 40%,var(--wine-600) 70%,var(--wine-500) 100%);padding:18px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.hdr-left{display:flex;align-items:center;gap:18px;}
+.hdr-logo{width:60px;height:60px;border-radius:8px;object-fit:contain;background:#fff;padding:4px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.hdr-firm{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.6);text-transform:uppercase;margin-bottom:3px;}
+.hdr-title{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:.04em;text-transform:uppercase;line-height:1.2;}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:3px;}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hdr-badge{background:var(--gold-400);color:var(--ink-900);font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.14em;padding:6px 12px;border-radius:var(--r-sm);text-transform:uppercase;}
+.hdr-refresh{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'Libre Franklin',sans-serif;font-size:11px;padding:6px 12px;border-radius:var(--r-sm);cursor:pointer;transition:background .15s;}
+.hdr-refresh:hover{background:rgba(255,255,255,.22);}
+.upload-status{font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap;}
+
+/* ── TABS NAV */
+.tabs-nav{background:var(--card);border-bottom:2px solid var(--border);padding:0 40px;display:flex;gap:0;overflow-x:auto;position:sticky;top:96px;z-index:90;box-shadow:var(--shadow-xs);}
+.tab-btn{font-family:'Libre Franklin',sans-serif;font-size:12px;font-weight:500;color:var(--ink-500);padding:12px 18px;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;letter-spacing:.01em;}
+.tab-btn:hover{color:var(--wine-600);}
+.tab-btn.active{color:var(--wine-600);border-bottom-color:var(--wine-600);font-weight:600;}
+
+/* ── PAGE */
+.page{max-width:1280px;margin:0 auto;padding:28px 32px 48px;}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+
+/* ── UPLOAD PANEL */
+.upload-panel{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:24px 28px;margin-bottom:28px;}
+.upload-panel-title{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-600);margin-bottom:16px;}
+.upload-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.upload-box{border:1.5px dashed var(--border-strong);border-radius:var(--r-md);padding:16px 14px;cursor:pointer;transition:border-color .15s,background .15s;text-align:center;position:relative;}
+.upload-box:hover{border-color:var(--gold-400);background:var(--gold-50);}
+.upload-box.loaded{border-style:solid;border-color:var(--green-500);background:var(--green-100);}
+.upload-box.loading{border-color:var(--gold-400);background:var(--gold-50);}
+.upload-icon{font-size:22px;margin-bottom:6px;}
+.upload-box-label{font-size:11px;font-weight:600;color:var(--ink-700);margin-bottom:3px;}
+.upload-box-hint{font-size:10px;color:var(--ink-300);}
+.upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-btn{background:linear-gradient(135deg,var(--wine-700),var(--wine-600));color:#fff;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.12em;padding:10px 20px;border:none;border-radius:var(--r-sm);cursor:pointer;transition:opacity .15s;text-transform:uppercase;margin-top:14px;}
+.upload-btn:hover{opacity:.88;}
+.upload-btn:disabled{opacity:.4;cursor:not-allowed;}
+.upload-msg{font-size:11px;margin-top:10px;color:var(--ink-500);min-height:18px;}
+.upload-msg.ok{color:var(--green-500);font-weight:600;}
+.upload-msg.err{color:var(--wine-600);font-weight:600;}
+
+/* ── SECTION HEADER */
+.sec-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-600);margin-bottom:4px;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--ink-900);margin-bottom:20px;}
+
+/* ── KPI BAR */
+.kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px;}
+.kpi-card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:16px 18px;position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--wine-600),var(--gold-400));}
+.kpi-rank{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-600);margin-bottom:4px;}
+.kpi-grupo{font-size:12px;font-weight:600;color:var(--wine-600);line-height:1.3;margin-bottom:6px;}
+.kpi-n{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:500;color:var(--ink-900);line-height:1;}
+.kpi-lbl{font-size:11px;color:var(--ink-500);margin-top:3px;}
+.kpi-meta{font-size:11px;color:var(--ink-300);margin-top:3px;}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green-500);margin-right:4px;vertical-align:middle;}
+
+/* ── CHART CARD */
+.chart-card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:22px 26px;margin-bottom:24px;}
+.chart-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;}
+.chart-title{font-size:14px;font-weight:600;color:var(--ink-900);}
+.chart-sub{font-size:11px;color:var(--ink-500);margin-top:2px;}
+.chart-note{font-size:11px;color:var(--ink-300);text-align:right;flex-shrink:0;}
+
+/* ── GROUP PANEL */
+.grp-panel{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:20px;}
+.grp-hdr{background:linear-gradient(135deg,var(--wine-700),var(--wine-600));padding:14px 22px;display:flex;align-items:center;justify-content:space-between;}
+.grp-rank-tag{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;color:var(--gold-400);text-transform:uppercase;margin-bottom:2px;}
+.grp-name{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.05em;}
+.grp-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;}
+.grp-n{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:500;color:#fff;line-height:1;text-align:right;}
+.grp-n-lbl{font-size:11px;color:rgba(255,255,255,.6);text-align:right;margin-top:2px;}
+.grp-body{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.grp-col{padding:18px 22px;}
+.grp-col:first-child{border-right:1px solid var(--border);}
+.col-ttl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-600);margin-bottom:12px;}
+
+/* nat bars */
+.nat-item{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.nat-name{font-size:12px;color:var(--ink-900);width:115px;flex-shrink:0;}
+.nat-bar-wrap{flex:1;background:var(--sand-200);border-radius:3px;height:7px;overflow:hidden;}
+.nat-bar{height:100%;border-radius:3px;}
+.nat-n{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-500);width:36px;text-align:right;flex-shrink:0;}
+.nat-pct{font-size:10px;color:var(--ink-300);width:34px;text-align:right;flex-shrink:0;}
+
+/* pedidos */
+.ped-item{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.ped-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.ped-rk{font-family:'Cinzel',serif;font-size:10px;color:var(--wine-600);width:14px;flex-shrink:0;text-align:center;}
+.ped-name{font-size:12px;color:var(--ink-900);flex:1;line-height:1.3;}
+.ped-pill{background:var(--gold-50);border:1px solid var(--gold-200);color:var(--gold-600);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 7px;border-radius:20px;flex-shrink:0;}
+
+/* ── SUMMARY CHARTS ROW */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+
+/* ── EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--ink-300);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-txt{font-size:14px;}
+
+/* ── DIVIDER */
+.divider{height:1px;background:var(--border);margin:24px 0;}
+
+/* ── FOOTER */
+.footer{background:var(--card);border-top:1px solid var(--border);text-align:center;padding:16px 32px;font-size:11px;color:var(--ink-300);}
+
+/* ── TAG */
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.tag-T{background:#FEF3E2;color:#92600A;}
+.tag-H{background:#E8F4FD;color:#1A6FA0;}
+.tag-C{background:#F0F4FF;color:#3A4FA0;}
+.tag-Tr{background:#F4F0FF;color:#5B3FA0;}
+.tag-A{background:#E8F7F0;color:#1A7A4A;}
+.tag-D{background:#F5F5FF;color:#4A4AAA;}
+
+/* ── SCROLLBAR */
+::-webkit-scrollbar{height:5px;width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-left">
+    <img class="hdr-logo" src="data:image/jpeg;base64,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" alt="Imaculada Gordiano">
+    <div>
+      <div class="hdr-firm">Imaculada Gordiano · Sociedade de Advogados</div>
+      <div class="hdr-title">Painel 05 — Clientes com Mais Processos</div>
+      <div class="hdr-sub" id="hdrSub">Processos ativos e suspensos · Referência: Jun/2026</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="upload-status" id="uploadStatus"></span>
+    <div class="hdr-badge">Controladoria · Analítico</div>
+  </div>
+</header>
+
+<!-- TABS NAV -->
+<nav class="tabs-nav" id="tabsNav">
+  <button class="tab-btn active" data-tab="geral">Geral</button>
+  <button class="tab-btn" data-tab="trabalhista">Trabalhista</button>
+  <button class="tab-btn" data-tab="civel_etc">Cível · Penal · Prev. · Soc.</button>
+  <button class="tab-btn" data-tab="hospitalar">Hospitalar</button>
+  <button class="tab-btn" data-tab="trib_adm">Tributária · Administrativo</button>
+  <button class="tab-btn" data-tab="amb_reg">Ambiental · Regulatório</button>
+  <button class="tab-btn" data-tab="digital">Digital</button>
+</nav>
+
+<!-- MAIN -->
+<div class="page">
+
+  <!-- UPLOAD PANEL (shown on all tabs) -->
+  <div class="upload-panel">
+    <div class="upload-panel-title">Atualização de Dados · Carregar Planilhas</div>
+    <div class="upload-grid">
+      <div class="upload-box" id="boxProc">
+        <input type="file" id="fileProc" accept=".xlsx,.xls" onchange="onFileSelect('proc',this)">
+        <div class="upload-icon">📋</div>
+        <div class="upload-box-label">Processos</div>
+        <div class="upload-box-hint" id="hintProc">Portal_IGSA_Processos.xlsx</div>
+      </div>
+      <div class="upload-box" id="boxPed">
+        <input type="file" id="filePed" accept=".xlsx,.xls" onchange="onFileSelect('ped',this)">
+        <div class="upload-icon">📝</div>
+        <div class="upload-box-label">Pedidos</div>
+        <div class="upload-box-hint" id="hintPed">Pedidos_Analytics.xlsx</div>
+      </div>
+      <div class="upload-box" id="boxCli">
+        <input type="file" id="fileCli" accept=".xlsx,.xls" onchange="onFileSelect('cli',this)">
+        <div class="upload-icon">🏢</div>
+        <div class="upload-box-label">Clientes e Grupos</div>
+        <div class="upload-box-hint" id="hintCli">Relatório_clientes_e_grupos.xlsx</div>
+      </div>
+    </div>
+    <button class="upload-btn" id="btnProcess" onclick="processAll()" disabled>
+      Processar e Atualizar Dashboard
+    </button>
+    <div class="upload-msg" id="uploadMsg"></div>
+  </div>
+
+  <!-- TAB: GERAL -->
+  <div class="tab-pane active" id="pane-geral">
+    <div id="content-geral"></div>
+  </div>
+
+  <!-- TAB: TRABALHISTA -->
+  <div class="tab-pane" id="pane-trabalhista">
+    <div id="content-trabalhista"></div>
+  </div>
+
+  <!-- TAB: CIVEL ETC -->
+  <div class="tab-pane" id="pane-civel_etc">
+    <div id="content-civel_etc"></div>
+  </div>
+
+  <!-- TAB: HOSPITALAR -->
+  <div class="tab-pane" id="pane-hospitalar">
+    <div id="content-hospitalar"></div>
+  </div>
+
+  <!-- TAB: TRIB ADM -->
+  <div class="tab-pane" id="pane-trib_adm">
+    <div id="content-trib_adm"></div>
+  </div>
+
+  <!-- TAB: AMB REG -->
+  <div class="tab-pane" id="pane-amb_reg">
+    <div id="content-amb_reg"></div>
+  </div>
+
+  <!-- TAB: DIGITAL -->
+  <div class="tab-pane" id="pane-digital">
+    <div id="content-digital"></div>
+  </div>
+
+</div>
+
+<div class="footer" id="footerTxt">
+  Imaculada Gordiano Sociedade de Advogados · Controladoria Jurídica · Painel 05 — Clientes com Mais Processos
+</div>
+<script>
+Chart.register(ChartDataLabels);
+
+// ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+const SB_URL = 'https://gvtsmmqxzpfcvtrhogym.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dHNtbXF4enBmY3Z0cmhvZ3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTg5MjIsImV4cCI6MjA2NjI3NDkyMn0.NU1amZx2aJJeJH_YIH_vOHkz8Gms5jwJqzJXEIoP0SQ';
+const SB_ROW = 'painel05';
+
+// ── SEED DATA (embedded from current spreadsheets) ──────────────────────────
+const SEED_DATA = {"geral": {"total_proc": 7281, "natureza_total": {"Trabalhista": 4234, "C\u00edvel": 1284, "Tribut\u00e1ria": 792, "Hospitalar": 642, "Ambiental": 205, "Penal": 52, "Regulat\u00f3rio": 45, "Administrativo": 22, "Previdenci\u00e1ria": 5}, "ped_total": {"Adicional de Insalubridade": 980, "Verbas Rescis\u00f3rias": 854, "Danos Morais": 809, "Horas Extras": 683, "Multa Artigo 477 CLT": 348, "Multa Artigo 467 CLT": 270, "Rescis\u00e3o Indireta": 245, "Indeniza\u00e7\u00e3o por Dano Moral": 228, "Ac\u00famulo de Fun\u00e7\u00e3o": 217, "Intervalo Intrajornada": 203}, "grupos": [{"grupo": "SBSC CE", "total": 2368, "num_clientes": 12, "natureza": {"Trabalhista": 2013, "Hospitalar": 279, "C\u00edvel": 55, "Tribut\u00e1ria": 13, "Ambiental": 4, "Administrativo": 2, "Penal": 2}, "top_pedidos": {"Adicional de Insalubridade": 98, "Danos Morais": 94, "Danos Materiais": 32, "Verbas Rescis\u00f3rias": 28, "Indeniza\u00e7\u00e3o por Dano Moral": 11, "Horas Extras": 10, "Antecipa\u00e7\u00e3o de Tutela": 9, "Multa Artigo 477 CLT": 9}, "top_clientes": {"SBSC - HOSPITAL CURA DARS - FORTALEZA": 1016, "SBSC - HOSPITAL S\u00c3O LUCAS": 622, "SBSC - HOSP. E MATER. S\u00c3O VICENTE DE PAULO - ITAPIPOCA": 561, "SBSC - HOSPITAL MATERNIDADE BELARMINA MONTE": 44, "SBSC - CL\u00cdNICA ANITA GEROSA": 38, "SBSC - HOSPITAL S\u00c3O RAIMUNDO": 34, "SBSC - HOSPITAL DR. ALBERTO FEITOSA LIMA - TAUA": 27, "SBSC - HOSPITAL SANTA CRUZ": 14}}, {"grupo": "GPM", "total": 761, "num_clientes": 45, "natureza": {"Trabalhista": 761}, "top_pedidos": {"Adicional de Insalubridade": 393, "Verbas Rescis\u00f3rias": 341, "Horas Extras": 312, "Danos Morais": 278, "Multa Artigo 477 CLT": 153, "Ac\u00famulo de Fun\u00e7\u00e3o": 134, "Indeniza\u00e7\u00e3o por Dano Moral": 125, "Intervalo Intrajornada": 123}, "top_clientes": {"GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 01 - Santa Barbara do D'Oeste - MATRIZ": 126, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 26 - Campinas - FILIAL 25": 45, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 32 - Centro Administrativo - FILIAL 31": 35, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 13 - Campinas - FILIAL 12": 33, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 31 - Campinas - FILIAL 30": 33, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA- LOJA 39 - Campinas": 31, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 29 - Salto - FILIAL 28": 30, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 16 - Hort\u00f4landia - FILIAL 15": 29}}, {"grupo": "ANIGER", "total": 378, "num_clientes": 7, "natureza": {"Trabalhista": 255, "Tribut\u00e1ria": 101, "Ambiental": 13, "C\u00edvel": 6, "Regulat\u00f3rio": 3}, "top_pedidos": {"Verbas Rescis\u00f3rias": 134, "Danos Morais": 103, "Adicional de Insalubridade": 98, "Horas Extras": 80, "Multa Artigo 477 CLT": 51, "Rescis\u00e3o Indireta": 40, "Multa Artigo 467 CLT": 40, "Aviso Pr\u00e9vio": 35}, "top_clientes": {"COCALQUI - COOPERATIVA DE TRABALHO DA INDUSTRIA DE CALCADOS DE QUIXERAMOBIM LTDA": 179, "ANIGER - CALCADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 116, "ANIGER - CAL\u00c7ADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 38, "MELBROS INDUSTRIA E COMERCIO DE CAL\u00c7ADOS": 23, "CALCADOS ANIGER NORDESTE LTDA": 14, "TECSHOES LATINOAMERICA INDUSTRIA DE CALCADOS LTDA": 7, "CAL\u00c7ADOS ANIGER NORDESTE LTDA": 1}}, {"grupo": "RUDOLF", "total": 91, "num_clientes": 2, "natureza": {"C\u00edvel": 65, "Trabalhista": 19, "Tribut\u00e1ria": 6, "Ambiental": 1}, "top_pedidos": {"Adicional de Insalubridade": 10, "Verbas Rescis\u00f3rias": 9, "Horas Extras": 7, "Danos Morais": 6, "Adicional de Periculosidade": 6, "Antecipa\u00e7\u00e3o de Tutela": 5, "Ac\u00famulo de Fun\u00e7\u00e3o": 4, "Doen\u00e7a Ocupacional": 3}, "top_clientes": {"RUDOLF-SIZING AMIDOS DO BRASIL LTDA.": 89, "RUDOLF SIZING PRODUTOS QUIMICOS LTDA": 2}}, {"grupo": "CERAMA", "total": 79, "num_clientes": 9, "natureza": {"Ambiental": 28, "C\u00edvel": 18, "Trabalhista": 18, "Tribut\u00e1ria": 10, "Penal": 2, "Regulat\u00f3rio": 2, "Administrativo": 1}, "top_pedidos": {"Verbas Rescis\u00f3rias": 10, "Horas Extras": 9, "Multa Artigo 477 CLT": 4, "Danos Morais": 3, "Dobra Domingos e Feriados": 3, "Multa Artigo 467 CLT": 3, "Danos Materiais": 3, "Adicional de Periculosidade": 3}, "top_clientes": {"CERAMA TRANSPORTES LTDA": 57, "CERAMA TRANSPORTES LTDA - FILIAL BAHIA": 10, "RENATO MASSARI": 6, "RENATA MASSARI": 1, "BEIJA FLOR EMPREENDIMENTOS IMOBILIARIOS LTDA": 1, "6M PARTICIPACOES S/A": 1, "MAURO MASSARI": 1, "MARCO MASSARI": 1}}]}, "trabalhista": {"total_proc": 4234, "natureza_total": {"Trabalhista": 4234}, "ped_total": {"Adicional de Insalubridade": 980, "Verbas Rescis\u00f3rias": 854, "Horas Extras": 683, "Danos Morais": 573, "Multa Artigo 477 CLT": 348, "Multa Artigo 467 CLT": 270, "Rescis\u00e3o Indireta": 245, "Ac\u00famulo de Fun\u00e7\u00e3o": 217, "Indeniza\u00e7\u00e3o por Dano Moral": 210, "Intervalo Intrajornada": 203}, "grupos": [{"grupo": "SBSC CE", "total": 2013, "num_clientes": 9, "natureza": {"Trabalhista": 2013}, "top_pedidos": {"Adicional de Insalubridade": 98, "Verbas Rescis\u00f3rias": 28, "Danos Morais": 17, "Horas Extras": 10, "Indeniza\u00e7\u00e3o por Dano Moral": 9, "Multa Artigo 477 CLT": 9, "FGTS": 8, "Intervalo Intrajornada": 6}, "top_clientes": {"SBSC - HOSPITAL CURA DARS - FORTALEZA": 879, "SBSC - HOSPITAL S\u00c3O LUCAS": 575, "SBSC - HOSP. E MATER. S\u00c3O VICENTE DE PAULO - ITAPIPOCA": 515, "SBSC - CL\u00cdNICA ANITA GEROSA": 18, "SBSC - HOSPITAL MATERNIDADE BELARMINA MONTE": 12, "SBSC - HOSPITAL S\u00c3O RAIMUNDO": 5, "SBSC - HOSPITAL SANTA CRUZ": 4, "SBSC - HOSPITAL DR. ALBERTO FEITOSA LIMA - TAUA": 3}}, {"grupo": "GPM", "total": 761, "num_clientes": 45, "natureza": {"Trabalhista": 761}, "top_pedidos": {"Adicional de Insalubridade": 393, "Verbas Rescis\u00f3rias": 341, "Horas Extras": 312, "Danos Morais": 278, "Multa Artigo 477 CLT": 153, "Ac\u00famulo de Fun\u00e7\u00e3o": 134, "Indeniza\u00e7\u00e3o por Dano Moral": 125, "Intervalo Intrajornada": 123}, "top_clientes": {"GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 01 - Santa Barbara do D'Oeste - MATRIZ": 126, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 26 - Campinas - FILIAL 25": 45, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 32 - Centro Administrativo - FILIAL 31": 35, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 13 - Campinas - FILIAL 12": 33, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 31 - Campinas - FILIAL 30": 33, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA- LOJA 39 - Campinas": 31, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 29 - Salto - FILIAL 28": 30, "GPM - PAGUE MENOS COMERCIO DE PRODUTOS ALIMENTICIOS LTDA - LOJA 16 - Hort\u00f4landia - FILIAL 15": 29}}, {"grupo": "ANIGER", "total": 255, "num_clientes": 7, "natureza": {"Trabalhista": 255}, "top_pedidos": {"Verbas Rescis\u00f3rias": 134, "Danos Morais": 103, "Adicional de Insalubridade": 98, "Horas Extras": 80, "Multa Artigo 477 CLT": 51, "Rescis\u00e3o Indireta": 40, "Multa Artigo 467 CLT": 40, "Aviso Pr\u00e9vio": 35}, "top_clientes": {"COCALQUI - COOPERATIVA DE TRABALHO DA INDUSTRIA DE CALCADOS DE QUIXERAMOBIM LTDA": 164, "ANIGER - CALCADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 42, "ANIGER - CAL\u00c7ADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 22, "MELBROS INDUSTRIA E COMERCIO DE CAL\u00c7ADOS": 14, "CALCADOS ANIGER NORDESTE LTDA": 6, "TECSHOES LATINOAMERICA INDUSTRIA DE CALCADOS LTDA": 6, "CAL\u00c7ADOS ANIGER NORDESTE LTDA": 1}}, {"grupo": "RUDOLF", "total": 19, "num_clientes": 1, "natureza": {"Trabalhista": 19}, "top_pedidos": {"Adicional de Insalubridade": 10, "Verbas Rescis\u00f3rias": 9, "Horas Extras": 7, "Danos Morais": 6, "Adicional de Periculosidade": 6, "Ac\u00famulo de Fun\u00e7\u00e3o": 4, "Doen\u00e7a Ocupacional": 3, "Indeniza\u00e7\u00e3o por Dano Moral": 3}, "top_clientes": {"RUDOLF-SIZING AMIDOS DO BRASIL LTDA.": 19}}, {"grupo": "CERAMA", "total": 18, "num_clientes": 2, "natureza": {"Trabalhista": 18}, "top_pedidos": {"Verbas Rescis\u00f3rias": 10, "Horas Extras": 9, "Multa Artigo 477 CLT": 4, "Dobra Domingos e Feriados": 3, "Multa Artigo 467 CLT": 3, "Adicional de Periculosidade": 3, "Intervalo Interjornada": 2, "Multa Normativa": 2}, "top_clientes": {"CERAMA TRANSPORTES LTDA": 10, "CERAMA TRANSPORTES LTDA - FILIAL BAHIA": 8}}]}, "civel_etc": {"total_proc": 1341, "natureza_total": {"C\u00edvel": 1284, "Penal": 52, "Previdenci\u00e1ria": 5}, "ped_total": {"Danos Morais": 59, "Antecipa\u00e7\u00e3o de Tutela": 36, "Pagamento": 33, "Danos Materiais": 21, "Indeniza\u00e7\u00e3o por Dano Moral": 18, "Cobran\u00e7a de D\u00e9bito": 13, "Nulidade / Inexigibilidade do T\u00edtulo": 10, "Indeniza\u00e7\u00e3o por Dano Material": 8, "Rescis\u00e3o de Contrato": 7, "Restitui\u00e7\u00e3o dos Valores Pagos": 6}, "grupos": [{"grupo": "RUDOLF", "total": 65, "num_clientes": 1, "natureza": {"C\u00edvel": 65}, "top_pedidos": {"Antecipa\u00e7\u00e3o de Tutela": 5, "Pagamento": 1, "Susta\u00e7\u00e3o Protesto": 1, "Enriquecimento Sem Causa": 1, "Cobran\u00e7a de D\u00e9bito": 1}, "top_clientes": {"RUDOLF-SIZING AMIDOS DO BRASIL LTDA.": 65}}, {"grupo": "SBSC CE", "total": 57, "num_clientes": 9, "natureza": {"C\u00edvel": 55, "Penal": 2}, "top_pedidos": {"Pagamento": 4, "Cobran\u00e7a de D\u00e9bito": 4, "Antecipa\u00e7\u00e3o de Tutela": 2, "Indeniza\u00e7\u00e3o por Dano Moral": 2, "Nulidade / Inexigibilidade do T\u00edtulo": 1, "Danos Morais": 1, "Repeti\u00e7\u00e3o do Ind\u00e9bito": 1}, "top_clientes": {"SBSC - HOSPITAL CURA DARS - FORTALEZA": 37, "SBSC - HOSPITAL S\u00c3O LUCAS": 5, "SBSC - HOSPITAL E MATERNIDADE S\u00c3O FRANCISCO DE ASSIS": 4, "SBSC - HOSPITAL S\u00c3O RAIMUNDO": 4, "SBSC - HOSP. E MATER. S\u00c3O VICENTE DE PAULO - ITAPIPOCA": 2, "SBSC - SUPERINTEND\u00caNCIA NORTE NORDESTE": 2, "SBSC - CL\u00cdNICA ANITA GEROSA": 1, "SBSC - HOSPITAL SANTA CRUZ": 1}}, {"grupo": "A\u00c7O FORTE", "total": 34, "num_clientes": 3, "natureza": {"C\u00edvel": 34}, "top_pedidos": {"Pagamento": 2, "Penhora": 1, "Dep\u00f3sito": 1, "Comiss\u00f5es N\u00e3o Pagas": 1, "Atualiza\u00e7\u00e3o Monet\u00e1ria": 1}, "top_clientes": {"A\u00c7O FORTE M\u00d3VEIS E EQUIPAMENTOS S/A": 30, "A\u00c7OFORTE - FORTE COMERCIAL DE MOVEIS E ESTRUTURA METALICA LTDA": 3, "TATIANA HOLANDA MEDEIROS DE ALENCAR (A\u00e7o Forte)": 1}}, {"grupo": "ALSICENCE", "total": 31, "num_clientes": 5, "natureza": {"C\u00edvel": 28, "Penal": 3}, "top_pedidos": {"Pagamento": 2}, "top_clientes": {"ALSCIENCE ENGENHARIA E REPRESENTA\u00c7\u00d5ES LTDA.": 19, "IMG SERVICOS TECNICOS LTDA": 4, "MEREDITH SERVICOS EIRELI - ME": 3, "ADRIANO VIEIRA CUNHA PICAN\u00c7O": 3, "VRP SERVICOS TECNICOS LTDA - MTECHSP": 2}}, {"grupo": "S\u00c3O CARLOS IMAGEM", "total": 30, "num_clientes": 4, "natureza": {"C\u00edvel": 30}, "top_pedidos": {"Danos Morais": 1, "Danos Materiais": 1, "Rescis\u00e3o de Contrato": 1}, "top_clientes": {"CL\u00cdNICA S\u00c3O CARLOS DIAGN\u00d3STICO POR IMAGEM LTDA": 21, "DELFOS DIAGNOSTICO POR IMAGEM LTDA - ME": 6, "CLINICA SAO CARLOS DIAGNOSTICO POR IMAGEM LTDA": 2, "ANTONIO GILSON MONTE ARAG\u00c3O JUNIOR": 1}}]}, "hospitalar": {"total_proc": 642, "natureza_total": {"Hospitalar": 642}, "ped_total": {"Danos Morais": 177, "Danos Materiais": 55, "Antecipa\u00e7\u00e3o de Tutela": 29, "Obriga\u00e7\u00e3o de Fazer": 8, "Per\u00edcia M\u00e9dica": 3, "Despesas M\u00e9dicas": 2, "Plano de Sa\u00fade": 2, "Cobran\u00e7a de D\u00e9bito": 2, "Efeito Suspensivo": 1, "Prioridade Idoso": 1}, "grupos": [{"grupo": "SBSC CE", "total": 279, "num_clientes": 10, "natureza": {"Hospitalar": 279}, "top_pedidos": {"Danos Morais": 76, "Danos Materiais": 29, "Antecipa\u00e7\u00e3o de Tutela": 5, "Per\u00edcia M\u00e9dica": 3, "Obriga\u00e7\u00e3o de Fazer": 1, "Aplica\u00e7\u00e3o CDC": 1, "Agravo em Recurso Especial": 1}, "top_clientes": {"SBSC - HOSPITAL CURA DARS - FORTALEZA": 90, "SBSC - HOSPITAL S\u00c3O LUCAS": 42, "SBSC - HOSP. E MATER. S\u00c3O VICENTE DE PAULO - ITAPIPOCA": 41, "SBSC - HOSPITAL MATERNIDADE BELARMINA MONTE": 30, "SBSC - HOSPITAL S\u00c3O RAIMUNDO": 24, "SBSC - HOSPITAL DR. ALBERTO FEITOSA LIMA - TAUA": 22, "SBSC - CL\u00cdNICA ANITA GEROSA": 18, "SBSC - HOSPITAL SANTA CRUZ": 9}}, {"grupo": "BENEFICENCIA CAMILIANA DO SUL", "total": 52, "num_clientes": 3, "natureza": {"Hospitalar": 52}, "top_pedidos": {"Danos Morais": 15, "Antecipa\u00e7\u00e3o de Tutela": 7, "Obriga\u00e7\u00e3o de Fazer": 3, "Danos Materiais": 1, "Cobran\u00e7a de D\u00e9bito": 1}, "top_clientes": {"BENEFICENCIA CAMILIANA DO SUL - PLANO DE SAUDE SAO CAMILO - FORTALEZA": 38, "BENEFICENCIA CAMILIANA DO SUL - PLANO DE SAUDE SAO CAMILO - SOBRAL": 8, "BENEFICENCIA CAMILIANA DO SUL": 6}}, {"grupo": "CASA DE SA\u00daDE S\u00c3O RAIMUNDO", "total": 13, "num_clientes": 2, "natureza": {"Hospitalar": 13}, "top_pedidos": {"Danos Morais": 2, "Danos Materiais": 1}, "top_clientes": {"CASA DE SA\u00daDE E MATERNIDADE S\u00c3O RAIMUNDO S.A": 9, "HOSPITAL SAO RAIMUNDO S/S LTDA": 4}}, {"grupo": "S\u00c3O CARLOS IMAGEM", "total": 10, "num_clientes": 4, "natureza": {"Hospitalar": 10}, "top_pedidos": {"Danos Morais": 3}, "top_clientes": {"DELFOS DIAGNOSTICO POR IMAGEM LTDA - ME": 5, "CL\u00cdNICA S\u00c3O CARLOS DIAGN\u00d3STICO POR IMAGEM LTDA": 2, "CLINICA BEROALDO JUREMA S/A": 2, "CLINICA SAO CARLOS DIAGNOSTICO POR IMAGEM LTDA": 1}}, {"grupo": "GRUPO HOSPITAL S\u00c3O CAMILO - IGUATU", "total": 6, "num_clientes": 2, "natureza": {"Hospitalar": 6}, "top_pedidos": {"Danos Morais": 4, "Danos Materiais": 3, "Plano de Sa\u00fade": 1, "Antecipa\u00e7\u00e3o de Tutela": 1}, "top_clientes": {"CLINICA SAO CAMILO LTDA - IGUATU": 5, "BPA SERVICOS ADMINISTRATIVOS LTDA": 1}}]}, "trib_adm": {"total_proc": 814, "natureza_total": {"Tribut\u00e1ria": 792, "Administrativo": 22}, "ped_total": {"Contribui\u00e7\u00f5es Sociais": 10, "Restitui\u00e7\u00e3o dos Valores Pagos": 9, "Pagamento": 6, "Imposto de Renda de Pessoa Jur\u00eddica": 6, "Compensa\u00e7\u00e3o": 3, "Efeito Suspensivo": 3, "Antecipa\u00e7\u00e3o de Tutela": 1, "IPTU": 1, "Imposto de Renda Contribui\u00e7\u00f5es Previdenc": 1, "Notifica\u00e7\u00e3o": 1}, "grupos": [{"grupo": "ANIGER", "total": 101, "num_clientes": 5, "natureza": {"Tribut\u00e1ria": 101}, "top_pedidos": {"Efeito Suspensivo": 1, "Restitui\u00e7\u00e3o dos Valores Pagos": 1, "Imposto de Renda Contribui\u00e7\u00f5es Previdenc": 1, "Compensa\u00e7\u00e3o": 1}, "top_clientes": {"ANIGER - CALCADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 66, "COCALQUI - COOPERATIVA DE TRABALHO DA INDUSTRIA DE CALCADOS DE QUIXERAMOBIM LTDA": 12, "ANIGER - CAL\u00c7ADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 12, "CALCADOS ANIGER NORDESTE LTDA": 8, "MELBROS INDUSTRIA E COMERCIO DE CAL\u00c7ADOS": 3}}, {"grupo": "AM\u00caNDOAS DO BRASIL", "total": 58, "num_clientes": 5, "natureza": {"Tribut\u00e1ria": 58}, "top_pedidos": {"Efeito Suspensivo": 1, "Pagamento": 1, "IPTU": 1}, "top_clientes": {"AMENDOAS DO BRASIL LTDA": 41, "EMPESCA ALIMENTOS LTDA": 7, "MARICULTURA TROPICAL LTDA": 6, "EMPESCA SA CONSTRUCOES NAVAIS PESCA E EXPORTACAO": 3, "ANT\u00d4NIO JOS\u00c9 GOMES TEIXEIRA DE CARVALHO": 1}}, {"grupo": "ALUNOBRE", "total": 52, "num_clientes": 4, "natureza": {"Tribut\u00e1ria": 52}, "top_pedidos": {}, "top_clientes": {"ALUNOBRE INDUSTRIA E COMERCIO DE ESQUADRIAS LIMITADA": 29, "ALMONTFOR MONTAGEM DE ESQUADRIAS EIRELI": 10, "RIO DO PEIXE PARTICIPACOES S/A": 7, "ALUNOR ALUMINIO NORDESTE LTDA": 6}}, {"grupo": "ALSICENCE", "total": 18, "num_clientes": 3, "natureza": {"Tribut\u00e1ria": 18}, "top_pedidos": {}, "top_clientes": {"ALSCIENCE ENGENHARIA E REPRESENTA\u00c7\u00d5ES LTDA.": 11, "IMG SERVICOS TECNICOS LTDA": 4, "ADRIANO VIEIRA CUNHA PICAN\u00c7O": 3}}, {"grupo": "S\u00c3O CARLOS IMAGEM", "total": 18, "num_clientes": 5, "natureza": {"Tribut\u00e1ria": 18}, "top_pedidos": {"Contribui\u00e7\u00f5es Sociais": 6, "Restitui\u00e7\u00e3o dos Valores Pagos": 4, "Imposto de Renda de Pessoa Jur\u00eddica": 3}, "top_clientes": {"DELFOS DIAGNOSTICO POR IMAGEM LTDA - ME": 6, "CL\u00cdNICA S\u00c3O CARLOS DIAGN\u00d3STICO POR IMAGEM LTDA": 4, "CLINICA BEROALDO JUREMA S/A": 3, "S\u00c3O CARLOS - CENTRO DE DIAGNOSTICO POR IMAGEM LTDA": 3, "CLINICA SAO CARLOS IBIAPABA LTDA": 2}}]}, "amb_reg": {"total_proc": 250, "natureza_total": {"Ambiental": 205, "Regulat\u00f3rio": 45}, "ped_total": {"Descumprimento de Condicionante - Licenciamento Ambiental": 2, "Antecipa\u00e7\u00e3o de Tutela": 1}, "grupos": [{"grupo": "CERAMA", "total": 30, "num_clientes": 3, "natureza": {"Ambiental": 28, "Regulat\u00f3rio": 2}, "top_pedidos": {}, "top_clientes": {"CERAMA TRANSPORTES LTDA": 28, "CERAMA TRANSPORTES LTDA - FILIAL BAHIA": 1, "MARCO MASSARI": 1}}, {"grupo": "MALIBRU/DICOCO", "total": 21, "num_clientes": 3, "natureza": {"Ambiental": 18, "Regulat\u00f3rio": 3}, "top_pedidos": {}, "top_clientes": {"DICOCO AGROINDUSTRIAL LTDA": 16, "MALIBRU ATACAREJO DO BRASIL LTDA": 4, "MALIBRU AGRO INDUSTRIA, DISTRIB, IMP E EXP S/A": 1}}, {"grupo": "ANIGER", "total": 16, "num_clientes": 5, "natureza": {"Ambiental": 13, "Regulat\u00f3rio": 3}, "top_pedidos": {}, "top_clientes": {"MELBROS INDUSTRIA E COMERCIO DE CAL\u00c7ADOS": 6, "ANIGER - CAL\u00c7ADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 4, "ANIGER - CALCADOS, SUPRIMENTOS E EMPREENDIMENTOS LTDA.": 3, "COCALQUI - COOPERATIVA DE TRABALHO DA INDUSTRIA DE CALCADOS DE QUIXERAMOBIM LTDA": 2, "TECSHOES LATINOAMERICA INDUSTRIA DE CALCADOS LTDA": 1}}, {"grupo": "AM\u00caNDOAS DO BRASIL", "total": 11, "num_clientes": 3, "natureza": {"Ambiental": 11}, "top_pedidos": {}, "top_clientes": {"AMENDOAS DO BRASIL LTDA": 9, "EMPESCA ALIMENTOS LTDA": 1, "MARICULTURA TROPICAL LTDA": 1}}, {"grupo": "SBSC CE", "total": 4, "num_clientes": 3, "natureza": {"Ambiental": 4}, "top_pedidos": {}, "top_clientes": {"SBSC - HOSPITAL CURA DARS - FORTALEZA": 2, "SBSC - CL\u00cdNICA ANITA GEROSA": 1, "SBSC - HOSPITAL DR. ALBERTO FEITOSA LIMA - TAUA": 1}}]}, "digital": {"total_proc": 0, "natureza_total": {}, "ped_total": {}, "grupos": []}};
+
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let DASH = null;
+let activeTab = 'geral';
+let pendingFiles = {proc: null, ped: null, cli: null};
+let chartRegistry = {};
+
+// ── SUPABASE HELPERS ─────────────────────────────────────────────────────────
+async function sbFetch(path, opts={}) {
+  const res = await fetch(SB_URL + path, {
+    ...opts,
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+      ...(opts.headers || {})
+    }
+  });
+  return res;
+}
+
+async function loadFromSupabase() {
+  try {
+    const res = await sbFetch('/rest/v1/dashboard_data?id=eq.' + SB_ROW + '&select=payload,updated_at', {
+      headers: {'Prefer': 'return=representation'}
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows || rows.length === 0) return null;
+    document.getElementById('uploadStatus').textContent =
+      'Dados de ' + new Date(rows[0].updated_at).toLocaleString('pt-BR');
+    return rows[0].payload;
+  } catch(e) { return null; }
+}
+
+async function saveToSupabase(payload) {
+  // upsert
+  const body = JSON.stringify({ id: SB_ROW, payload, updated_at: new Date().toISOString() });
+  const res = await sbFetch('/rest/v1/dashboard_data', {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body
+  });
+  return res.ok || res.status === 204 || res.status === 200 || res.status === 201;
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+async function boot() {
+  setMsg('Carregando dados...', '');
+  let data = await loadFromSupabase();
+  if (!data) {
+    // use seed
+    data = SEED_DATA;
+    document.getElementById('uploadStatus').textContent = 'Dados: planilhas de Jun/2026 (base inicial)';
+  }
+  DASH = data;
+  renderAll();
+  setMsg('', '');
+}
+
+// ── TAB SWITCHING ────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    activeTab = tab;
+    document.getElementById('pane-' + tab).classList.add('active');
+  });
+});
+
+// ── FILE SELECT ──────────────────────────────────────────────────────────────
+function onFileSelect(key, input) {
+  if (!input.files[0]) return;
+  pendingFiles[key] = input.files[0];
+  const box = document.getElementById('box' + key.charAt(0).toUpperCase() + key.slice(1));
+  box.classList.add('loaded');
+  document.getElementById('hint' + key.charAt(0).toUpperCase() + key.slice(1)).textContent = input.files[0].name;
+  checkReady();
+}
+
+function checkReady() {
+  const ready = Object.values(pendingFiles).some(f => f !== null);
+  document.getElementById('btnProcess').disabled = !ready;
+}
+
+// ── XLSX READING ──────────────────────────────────────────────────────────────
+function readXlsx(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wb = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
+      // smart sheet selection: pick sheet with most rows and known headers
+      let best = null, bestScore = -1;
+      wb.SheetNames.forEach(name => {
+        const ws = wb.Sheets[name];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        const score = rows.length;
+        if (score > bestScore) { bestScore = score; best = { name, rows }; }
+      });
+      resolve(best ? best.rows : []);
+    };
+    reader.onerror = reject;
+    reader.readAsBinaryString(file);
+  });
+}
+
+// ── PROCESS SPREADSHEETS ─────────────────────────────────────────────────────
+async function processAll() {
+  const btn = document.getElementById('btnProcess');
+  btn.disabled = true;
+  setMsg('Processando planilhas...', '');
+
+  try {
+    // Load whatever was uploaded, fallback to current DASH data for missing files
+    let procRows  = DASH ? null : null;
+    let pedRows   = DASH ? null : null;
+    let cliRows   = DASH ? null : null;
+
+    if (pendingFiles.proc) { setMsg('Lendo Processos...',''); procRows = await readXlsx(pendingFiles.proc); }
+    if (pendingFiles.ped)  { setMsg('Lendo Pedidos...','');   pedRows  = await readXlsx(pendingFiles.ped); }
+    if (pendingFiles.cli)  { setMsg('Lendo Clientes...','');  cliRows  = await readXlsx(pendingFiles.cli); }
+
+    setMsg('Calculando indicadores...', '');
+    const newData = computeDash(procRows, pedRows, cliRows);
+
+    setMsg('Salvando no servidor...', '');
+    const ok = await saveToSupabase(newData);
+    if (!ok) throw new Error('Falha ao salvar no Supabase.');
+
+    DASH = newData;
+    document.getElementById('uploadStatus').textContent =
+      'Atualizado em ' + new Date().toLocaleString('pt-BR');
+    renderAll();
+    setMsg('Dashboard atualizado com sucesso.', 'ok');
+
+    // reset pending
+    pendingFiles = {proc: null, ped: null, cli: null};
+    ['Proc','Ped','Cli'].forEach(k => {
+      const box = document.getElementById('box'+k);
+      box.classList.remove('loaded','loading');
+    });
+  } catch(err) {
+    setMsg('Erro: ' + err.message, 'err');
+    console.error(err);
+  }
+  btn.disabled = false;
+}
+
+function setMsg(txt, cls) {
+  const el = document.getElementById('uploadMsg');
+  el.textContent = txt;
+  el.className = 'upload-msg' + (cls ? ' '+cls : '');
+}
+
+// ── COMPUTE DASH DATA FROM ROWS ───────────────────────────────────────────────
+function computeDash(procRows, pedRows, cliRows) {
+  // If a sheet wasn't uploaded, reuse existing DASH data for that sheet's contribution.
+  // We always need all three to recompute from scratch; if any is missing, merge with existing.
+
+  const EXCL_PED   = new Set(['Honorários Advocatícios','Honorários de Sucumbência','Justiça Gratuita']);
+  const EXCL_GRUPO = new Set(['Clientes - Hnrs de Partido IGSA','Clientes - Hnrs de Partido IGGT',
+                               'Clientes - Hnrs de Partido IGTD','Estagiários','Advogados','Parceiros','STAFF']);
+
+  // Build grupo map from cli rows (skip header row if present)
+  const grupoMap = {};
+  if (cliRows) {
+    cliRows.forEach(r => {
+      const cli  = (r['Cliente'] || r['cliente'] || '').toString().trim();
+      const grp  = (r['Grupo']   || r['grupo']   || '').toString().split(/[;\n]/)[0].trim();
+      if (cli && !grupoMap[cli]) grupoMap[cli] = grp || '';
+    });
+  }
+
+  if (!procRows) return DASH; // nothing to recompute
+
+  // Filter active + suspended
+  const active = procRows.filter(r => {
+    const s = (r['Status']||'').toString().trim();
+    return s === 'Ativo' || s === 'Suspenso';
+  });
+
+  // Build pedidos map: pasta -> [pedido, ...]
+  const pedMap = {}; // pasta -> [{pedido, cliente}]
+  if (pedRows) {
+    pedRows.forEach(r => {
+      const pasta = (r['Pasta']||'').toString().trim();
+      const ped   = (r['Pedidos']||'').toString().trim();
+      const cli   = (r['Cliente principal '] || r['Cliente principal'] || r['cliente_ped'] || '').toString().trim();
+      if (!pasta || !ped || EXCL_PED.has(ped)) return;
+      if (!pedMap[pasta]) pedMap[pasta] = [];
+      pedMap[pasta].push({ ped, cli });
+    });
+  }
+
+  const activePastas = new Set(active.map(r => (r['Pasta']||'').toString().trim()).filter(Boolean));
+
+  // Tab definitions
+  const TAB_DEFS = {
+    geral:       null,
+    trabalhista: ['Trabalhista'],
+    civel_etc:   ['Cível','Penal','Previdenciária','Societária'],
+    hospitalar:  ['Hospitalar'],
+    trib_adm:    ['Tributária','Administrativo'],
+    amb_reg:     ['Ambiental','Regulatório'],
+    digital:     ['Digital'],
+  };
+
+  const out = {};
+  Object.entries(TAB_DEFS).forEach(([tabKey, nats]) => {
+    const sub = nats ? active.filter(r => nats.includes((r['Natureza']||'').toString().trim())) : active;
+
+    // natureza totals
+    const natCount = {};
+    sub.forEach(r => {
+      const n = (r['Natureza']||'Outros').toString().trim();
+      natCount[n] = (natCount[n]||0) + 1;
+    });
+
+    // overall pedidos for tab
+    const allPed = {};
+    sub.forEach(r => {
+      const p = (r['Pasta']||'').toString().trim();
+      if (pedMap[p]) pedMap[p].forEach(({ped}) => { allPed[ped] = (allPed[ped]||0)+1; });
+    });
+    const pedTotal = Object.entries(allPed).sort((a,b)=>b[1]-a[1]).slice(0,10)
+                           .reduce((acc,[k,v])=>{acc[k]=v;return acc;},{});
+
+    // grupos
+    const grupoVolMap = {};
+    sub.forEach(r => {
+      const cli = (r['Cliente principal']||'').toString().trim();
+      const grp = (grupoMap[cli] || (cliRows ? '' : (DASH && getGrupoFromDash(cli)) || '')).toString().trim();
+      if (!grp || EXCL_GRUPO.has(grp)) return;
+      if (!grupoVolMap[grp]) grupoVolMap[grp] = {rows:[], pastas:new Set()};
+      grupoVolMap[grp].rows.push(r);
+      const p = (r['Pasta']||'').toString().trim();
+      if (p) grupoVolMap[grp].pastas.add(p);
+    });
+
+    const top5 = Object.entries(grupoVolMap).sort((a,b)=>b[1].rows.length-a[1].rows.length).slice(0,5);
+    const grupos = top5.map(([grp, {rows: gRows, pastas: gPastas}], idx) => {
+      const nat = {};
+      gRows.forEach(r => { const n=(r['Natureza']||'Outros').toString().trim(); nat[n]=(nat[n]||0)+1; });
+      const cliSet = new Set(gRows.map(r=>(r['Cliente principal']||'').toString().trim()));
+      // pedidos
+      const ped = {};
+      gPastas.forEach(p => { if(pedMap[p]) pedMap[p].forEach(({ped:pd})=>{ped[pd]=(ped[pd]||0)+1;}); });
+      const topPed = Object.entries(ped).sort((a,b)=>b[1]-a[1]).slice(0,8)
+                           .reduce((acc,[k,v])=>{acc[k]=v;return acc;},{});
+      // top clientes
+      const cliVol = {};
+      gRows.forEach(r=>{const c=(r['Cliente principal']||'').trim();cliVol[c]=(cliVol[c]||0)+1;});
+      const topCli = Object.entries(cliVol).sort((a,b)=>b[1]-a[1]).slice(0,8)
+                           .reduce((acc,[k,v])=>{acc[k]=v;return acc;},{});
+      return { grupo:grp, total:gRows.length, num_clientes:cliSet.size,
+               natureza:nat, top_pedidos:topPed, top_clientes:topCli };
+    });
+
+    out[tabKey] = { total_proc: sub.length, natureza_total: natCount, ped_total: pedTotal, grupos };
+  });
+
+  return out;
+}
+
+function getGrupoFromDash(cli) {
+  if (!DASH) return '';
+  for (const tab of Object.values(DASH)) {
+    for (const g of (tab.grupos||[])) {
+      if (g.top_clientes && g.top_clientes[cli]) return g.grupo;
+    }
+  }
+  return '';
+}
+
+// ── RENDER ALL TABS ───────────────────────────────────────────────────────────
+function renderAll() {
+  if (!DASH) return;
+  const TAB_META = {
+    geral:       { label:'Geral',                    nats: null },
+    trabalhista: { label:'Trabalhista',               nats: ['Trabalhista'] },
+    civel_etc:   { label:'Cível · Penal · Prev. · Soc.', nats:['Cível','Penal','Previdenciária','Societária']},
+    hospitalar:  { label:'Hospitalar',               nats: ['Hospitalar'] },
+    trib_adm:    { label:'Tributária · Administrativo', nats:['Tributária','Administrativo']},
+    amb_reg:     { label:'Ambiental · Regulatório',  nats: ['Ambiental','Regulatório']},
+    digital:     { label:'Digital',                  nats: ['Digital']},
+  };
+  Object.entries(TAB_META).forEach(([key, meta]) => {
+    renderTab(key, meta.label, DASH[key]);
+  });
+}
+
+// ── COLOR MAP ─────────────────────────────────────────────────────────────────
+const NAT_COLORS = {
+  'Trabalhista':    '#9E3340',
+  'Hospitalar':     '#4A8EB5',
+  'Cível':          '#5B7FA0',
+  'Tributária':     '#7A5AA0',
+  'Ambiental':      '#2E9E5B',
+  'Regulatório':    '#5A9E6A',
+  'Penal':          '#A06050',
+  'Previdenciária': '#A08050',
+  'Societária':     '#6080A0',
+  'Administrativo': '#808050',
+  'Digital':        '#5050A0',
+  'Outros':         '#9E8E87',
+};
+const NAT_PALETTE = Object.values(NAT_COLORS);
+
+// ── RENDER TAB ─────────────────────────────────────────────────────────────────
+function renderTab(tabKey, label, data) {
+  const el = document.getElementById('content-' + tabKey);
+  if (!el) return;
+
+  // destroy existing charts
+  (chartRegistry[tabKey] || []).forEach(ch => ch.destroy());
+  chartRegistry[tabKey] = [];
+
+  if (!data || data.total_proc === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><div class="empty-txt">Nenhum processo ativo para esta natureza.</div></div>`;
+    return;
+  }
+
+  const html = buildTabHTML(tabKey, label, data);
+  el.innerHTML = html;
+
+
+}
+
+// ── BUILD TAB HTML ────────────────────────────────────────────────────────────
+function buildTabHTML(tabKey, label, data) {
+  const total = (data.total_proc||0).toLocaleString('pt-BR');
+  const grupos = data.grupos || [];
+
+  // KPI bar
+  let kpiHtml = '';
+  grupos.forEach((g, i) => {
+    const ranks = ['1º','2º','3º','4º','5º'];
+    kpiHtml += `
+      <div class="kpi-card">
+        <div class="kpi-rank">${ranks[i]} · Lugar</div>
+        <div class="kpi-grupo">${g.grupo}</div>
+        <div class="kpi-n">${(g.total||0).toLocaleString('pt-BR')}</div>
+        <div class="kpi-lbl">processos ativos / suspensos</div>
+        <div class="kpi-meta"><span class="dot"></span>${g.num_clientes} empresa(s)</div>
+      </div>`;
+  });
+  while (grupos.length < 5 && kpiHtml.split('kpi-card').length-1 < 5) {
+    kpiHtml += `<div class="kpi-card" style="opacity:.35"><div class="kpi-rank">—</div><div class="kpi-grupo" style="color:var(--ink-300)">Sem dados</div><div class="kpi-n">—</div></div>`;
+  }
+
+  // group panels
+  let panelsHtml = '';
+  grupos.forEach((g, i) => {
+    const ranks = ['1º','2º','3º','4º','5º'];
+    const natEntries = Object.entries(g.natureza||{}).sort((a,b)=>b[1]-a[1]);
+    const totalNat   = natEntries.reduce((s,[,v])=>s+v,0);
+    let natHtml = '';
+    natEntries.forEach(([n,v]) => {
+      const pct = totalNat > 0 ? ((v/totalNat)*100).toFixed(1) : 0;
+      const color = NAT_COLORS[n] || '#9E8E87';
+      natHtml += `
+        <li class="nat-item">
+          <span class="nat-name">${n}</span>
+          <div class="nat-bar-wrap"><div class="nat-bar" style="width:${pct}%;background:${color}"></div></div>
+          <span class="nat-n">${v.toLocaleString('pt-BR')}</span>
+          <span class="nat-pct">${pct}%</span>
+        </li>`;
+    });
+
+    const pedEntries = Object.entries(g.top_pedidos||{}).sort((a,b)=>b[1]-a[1]);
+    let pedHtml = '';
+    if (pedEntries.length === 0) {
+      pedHtml = '<p style="font-size:12px;color:var(--ink-300)">Pedidos não disponíveis para este grupo.</p>';
+    } else {
+      pedEntries.forEach(([p,v], pi) => {
+        pedHtml += `
+          <li class="ped-item">
+            <span class="ped-rk">${pi+1}</span>
+            <span class="ped-name">${p}</span>
+            <span class="ped-pill">${v.toLocaleString('pt-BR')}</span>
+          </li>`;
+      });
+    }
+
+    panelsHtml += `
+      <div class="grp-panel">
+        <div class="grp-hdr">
+          <div>
+            <div class="grp-rank-tag">${ranks[i]} · Grupo Econômico</div>
+            <div class="grp-name">${g.grupo}</div>
+            <div class="grp-sub">${g.num_clientes} empresa(s)</div>
+          </div>
+          <div>
+            <div class="grp-n">${(g.total||0).toLocaleString('pt-BR')}</div>
+            <div class="grp-n-lbl">processos ativos</div>
+          </div>
+        </div>
+        <div class="grp-body">
+          <div class="grp-col">
+            <div class="col-ttl">Natureza da Ação</div>
+            <ul class="nat-item" style="list-style:none">${natHtml}</ul>
+          </div>
+          <div class="grp-col">
+            <div class="col-ttl">Principais Pedidos</div>
+            <ul class="pedido-list" style="list-style:none">${pedHtml}</ul>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  return `
+    <div class="sec-label">${label}</div>
+    <div class="sec-title">Top 5 Grupos Econômicos — Processos Ativos e Suspensos</div>
+    <div class="kpi-bar">${kpiHtml}</div>
+    <div class="divider"></div>
+    <div class="sec-label">Detalhamento</div>
+    <div class="sec-title">Análise por Grupo Econômico</div>
+    ${panelsHtml}`;
+}
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+function buildRankingChart(tabKey, data) {
+  const el = document.getElementById('chart-rank-' + tabKey);
+  if (!el) return;
+  const grupos = data.grupos || [];
+  if (!grupos.length) return;
+
+  // collect all naturezas across groups
+  const allNats = new Set();
+  grupos.forEach(g => Object.keys(g.natureza||{}).forEach(n => allNats.add(n)));
+  const nats = Array.from(allNats);
+
+  const datasets = nats.map(n => ({
+    label: n,
+    data: grupos.map(g => (g.natureza||{})[n] || 0),
+    backgroundColor: NAT_COLORS[n] || '#9E8E87',
+    borderRadius: 0,
+  }));
+  // last dataset gets top border radius
+  if (datasets.length) datasets[datasets.length-1].borderRadius = 4;
+
+  const ch = new Chart(el, {
+    type: 'bar',
+    data: {
+      labels: grupos.map(g => g.grupo.length > 18 ? g.grupo.substring(0,16)+'…' : g.grupo),
+      datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position:'top', labels:{ font:{family:'Libre Franklin',size:10}, color:'#6B5E57', boxWidth:10, boxHeight:10, padding:12 }},
+        datalabels: {
+          display: ctx => ctx.dataset.data[ctx.dataIndex] > 30,
+          color:'#fff', font:{family:'IBM Plex Mono',size:9,weight:'500'},
+          formatter: v => v.toLocaleString('pt-BR'), anchor:'center', align:'center'
+        },
+        tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('pt-BR')}` }}
+      },
+      scales:{
+        x:{ stacked:true, grid:{display:false}, ticks:{font:{family:'Libre Franklin',size:11},color:'#2A2420'} },
+        y:{ stacked:true, grid:{color:'#E5DAC7'}, ticks:{font:{family:'IBM Plex Mono',size:10},color:'#9E8E87', callback:v=>v.toLocaleString('pt-BR')} }
+      }
+    }
+  });
+  if (!chartRegistry[tabKey]) chartRegistry[tabKey] = [];
+  chartRegistry[tabKey].push(ch);
+}
+
+function buildNatChart(tabKey, data) {
+  const el = document.getElementById('chart-nat-' + tabKey);
+  if (!el) return;
+  const natData = data.natureza_total || {};
+  const entries = Object.entries(natData).sort((a,b)=>b[1]-a[1]);
+  if (!entries.length) return;
+
+  const ch = new Chart(el, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(([k])=>k),
+      datasets:[{ data: entries.map(([,v])=>v),
+        backgroundColor: entries.map(([k])=>NAT_COLORS[k]||'#9E8E87'),
+        borderColor:'#fff', borderWidth:2, hoverOffset:6 }]
+    },
+    options:{
+      responsive:true, cutout:'60%',
+      plugins:{
+        legend:{ position:'right', labels:{font:{family:'Libre Franklin',size:11},color:'#4A3E38',boxWidth:12,padding:10}},
+        datalabels:{
+          display: ctx => { const t=ctx.dataset.data.reduce((a,b)=>a+b,0); return ctx.dataset.data[ctx.dataIndex]/t > 0.04; },
+          color:'#fff', font:{family:'IBM Plex Mono',size:10,weight:'500'},
+          formatter:(v,ctx)=>{ const t=ctx.dataset.data.reduce((a,b)=>a+b,0); return ((v/t)*100).toFixed(0)+'%'; }
+        },
+        tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed.toLocaleString('pt-BR')}` }}
+      }
+    }
+  });
+  if (!chartRegistry[tabKey]) chartRegistry[tabKey] = [];
+  chartRegistry[tabKey].push(ch);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+boot();
+</script>
+</body>
+</html>
