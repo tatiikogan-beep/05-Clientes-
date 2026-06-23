@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel 05 — Clientes com Mais Processos · IGSA</title>
+<title>Análise dos Principais Clientes: Naturezas e Pedidos · IGSA</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@0,600;1,400&family=Libre+Franklin:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
@@ -41,10 +41,10 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .upload-status{font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap;}
 
 /* ── TABS NAV */
-.tabs-nav{background:var(--card);border-bottom:2px solid var(--border);padding:0 40px;display:flex;gap:0;overflow-x:auto;position:sticky;top:96px;z-index:90;box-shadow:var(--shadow-xs);}
-.tab-btn{font-family:'Libre Franklin',sans-serif;font-size:12px;font-weight:500;color:var(--ink-500);padding:12px 18px;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s;letter-spacing:.01em;}
-.tab-btn:hover{color:var(--wine-600);}
-.tab-btn.active{color:var(--wine-600);border-bottom-color:var(--wine-600);font-weight:600;}
+.tabs-nav{background:var(--sand-100);border-bottom:2px solid var(--border);padding:10px 40px 0;display:flex;gap:8px;overflow-x:auto;position:sticky;top:96px;z-index:90;box-shadow:var(--shadow-xs);}
+.tab-btn{font-family:'Libre Franklin',sans-serif;font-size:11px;font-weight:500;color:var(--ink-500);padding:8px 14px;border:1px solid var(--border);background:var(--card);cursor:pointer;border-radius:var(--r-md) var(--r-md) 0 0;border-bottom:2px solid var(--border);margin-bottom:-2px;white-space:nowrap;transition:color .15s,background .15s,border-color .15s,box-shadow .15s;letter-spacing:.01em;box-shadow:var(--shadow-xs);}
+.tab-btn:hover{color:var(--wine-600);background:var(--gold-50);border-color:var(--border-strong);}
+.tab-btn.active{color:var(--wine-600);background:var(--card);border-color:var(--border-strong);border-bottom-color:var(--card);font-weight:600;box-shadow:0 -2px 6px rgba(90,40,30,.06);}
 
 /* ── PAGE */
 .page{max-width:1280px;margin:0 auto;padding:28px 32px 48px;}
@@ -105,7 +105,7 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .col-ttl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-600);margin-bottom:12px;}
 
 /* nat bars */
-.nat-item{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.nat-list{list-style:none;}.nat-item{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
 .nat-name{font-size:12px;color:var(--ink-900);width:115px;flex-shrink:0;}
 .nat-bar-wrap{flex:1;background:var(--sand-200);border-radius:3px;height:7px;overflow:hidden;}
 .nat-bar{height:100%;border-radius:3px;}
@@ -155,8 +155,8 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
   <div class="hdr-left">
     <img class="hdr-logo" src="data:image/jpeg;base64,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" alt="Imaculada Gordiano">
     <div>
-      <div class="hdr-firm">Imaculada Gordiano · Sociedade de Advogados</div>
-      <div class="hdr-title">Painel 05 — Clientes com Mais Processos</div>
+      <div class="hdr-firm">Imaculada Gordiano Sociedade de Advogados</div>
+      <div class="hdr-title">Análise dos Principais Clientes: Naturezas e Pedidos</div>
       <div class="hdr-sub" id="hdrSub">Processos ativos e suspensos · Referência: Jun/2026</div>
     </div>
   </div>
@@ -175,39 +175,11 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
   <button class="tab-btn" data-tab="trib_adm">Tributária · Administrativo</button>
   <button class="tab-btn" data-tab="amb_reg">Ambiental · Regulatório</button>
   <button class="tab-btn" data-tab="digital">Digital</button>
+  <button class="tab-btn" data-tab="importar" style="margin-left:auto;color:var(--ink-300);font-size:10px;letter-spacing:.08em;">⬆ Importar Dados</button>
 </nav>
 
 <!-- MAIN -->
 <div class="page">
-
-  <!-- UPLOAD PANEL (shown on all tabs) -->
-  <div class="upload-panel">
-    <div class="upload-panel-title">Atualização de Dados · Carregar Planilhas</div>
-    <div class="upload-grid">
-      <div class="upload-box" id="boxProc">
-        <input type="file" id="fileProc" accept=".xlsx,.xls" onchange="onFileSelect('proc',this)">
-        <div class="upload-icon">📋</div>
-        <div class="upload-box-label">Processos</div>
-        <div class="upload-box-hint" id="hintProc">Portal_IGSA_Processos.xlsx</div>
-      </div>
-      <div class="upload-box" id="boxPed">
-        <input type="file" id="filePed" accept=".xlsx,.xls" onchange="onFileSelect('ped',this)">
-        <div class="upload-icon">📝</div>
-        <div class="upload-box-label">Pedidos</div>
-        <div class="upload-box-hint" id="hintPed">Pedidos_Analytics.xlsx</div>
-      </div>
-      <div class="upload-box" id="boxCli">
-        <input type="file" id="fileCli" accept=".xlsx,.xls" onchange="onFileSelect('cli',this)">
-        <div class="upload-icon">🏢</div>
-        <div class="upload-box-label">Clientes e Grupos</div>
-        <div class="upload-box-hint" id="hintCli">Relatório_clientes_e_grupos.xlsx</div>
-      </div>
-    </div>
-    <button class="upload-btn" id="btnProcess" onclick="processAll()" disabled>
-      Processar e Atualizar Dashboard
-    </button>
-    <div class="upload-msg" id="uploadMsg"></div>
-  </div>
 
   <!-- TAB: GERAL -->
   <div class="tab-pane active" id="pane-geral">
@@ -244,10 +216,49 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
     <div id="content-digital"></div>
   </div>
 
+  <!-- TAB: IMPORTAR -->
+  <div class="tab-pane" id="pane-importar">
+    <div style="max-width:680px;margin:0 auto;padding-top:8px;">
+      <div class="sec-label">Importar Dados</div>
+      <div class="sec-title">Atualização das Planilhas</div>
+      <div class="upload-panel">
+        <div class="upload-panel-title">Carregar Planilhas · Os relatórios são processados individualmente</div>
+        <div class="upload-grid">
+          <div class="upload-box" id="boxProc">
+            <input type="file" id="fileProc" accept=".xlsx,.xls" onchange="onFileSelect('proc',this)">
+            <div class="upload-icon">📋</div>
+            <div class="upload-box-label">Processos</div>
+            <div class="upload-box-hint" id="hintProc">Portal_IGSA_Processos.xlsx</div>
+          </div>
+          <div class="upload-box" id="boxPed">
+            <input type="file" id="filePed" accept=".xlsx,.xls" onchange="onFileSelect('ped',this)">
+            <div class="upload-icon">📝</div>
+            <div class="upload-box-label">Pedidos</div>
+            <div class="upload-box-hint" id="hintPed">Pedidos_Analytics.xlsx</div>
+          </div>
+          <div class="upload-box" id="boxCli">
+            <input type="file" id="fileCli" accept=".xlsx,.xls" onchange="onFileSelect('cli',this)">
+            <div class="upload-icon">🏢</div>
+            <div class="upload-box-label">Clientes e Grupos</div>
+            <div class="upload-box-hint" id="hintCli">Relatório_clientes_e_grupos.xlsx</div>
+          </div>
+        </div>
+        <button class="upload-btn" id="btnProcess" onclick="processAll()" disabled>
+          Processar e Atualizar Dashboard
+        </button>
+        <div class="upload-msg" id="uploadMsg"></div>
+      </div>
+      <p style="font-size:11px;color:var(--ink-300);margin-top:12px;line-height:1.6;">
+        Os dados carregados ficam salvos no servidor e disponíveis para todos os usuários até que uma nova planilha seja importada.<br>
+        Planilhas não precisam ser carregadas simultaneamente — cada arquivo é processado de forma independente.
+      </p>
+    </div>
+  </div>
+
 </div>
 
 <div class="footer" id="footerTxt">
-  Imaculada Gordiano Sociedade de Advogados · Controladoria Jurídica · Painel 05 — Clientes com Mais Processos
+  Imaculada Gordiano Sociedade de Advogados · Controladoria Jurídica · Análise dos Principais Clientes: Naturezas e Pedidos
 </div>
 <script>
 Chart.register(ChartDataLabels);
@@ -588,7 +599,12 @@ function renderTab(tabKey, label, data) {
   const html = buildTabHTML(tabKey, label, data);
   el.innerHTML = html;
 
-
+  // render pedidos bar charts for each group
+  requestAnimationFrame(() => {
+    (data.grupos || []).forEach((g, i) => {
+      buildPedChart(tabKey, i, g.top_pedidos || {});
+    });
+  });
 }
 
 // ── BUILD TAB HTML ────────────────────────────────────────────────────────────
@@ -663,7 +679,11 @@ function buildTabHTML(tabKey, label, data) {
         <div class="grp-body">
           <div class="grp-col">
             <div class="col-ttl">Natureza da Ação</div>
-            <ul class="nat-item" style="list-style:none">${natHtml}</ul>
+            <ul class="nat-list">${natHtml}</ul>
+            <div style="margin-top:18px;">
+              <div class="col-ttl">Pedidos — Distribuição (%)</div>
+              <div style="position:relative;height:160px;"><canvas id="ped-chart-${tabKey}-${i}"></canvas></div>
+            </div>
           </div>
           <div class="grp-col">
             <div class="col-ttl">Principais Pedidos</div>
@@ -756,6 +776,64 @@ function buildNatChart(tabKey, data) {
           formatter:(v,ctx)=>{ const t=ctx.dataset.data.reduce((a,b)=>a+b,0); return ((v/t)*100).toFixed(0)+'%'; }
         },
         tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed.toLocaleString('pt-BR')}` }}
+      }
+    }
+  });
+  if (!chartRegistry[tabKey]) chartRegistry[tabKey] = [];
+  chartRegistry[tabKey].push(ch);
+}
+
+// ── PEDIDOS BAR CHART ────────────────────────────────────────────────────────
+function buildPedChart(tabKey, idx, pedidos) {
+  const el = document.getElementById('ped-chart-' + tabKey + '-' + idx);
+  if (!el) return;
+  const entries = Object.entries(pedidos).sort((a,b) => b[1]-a[1]).slice(0,8);
+  if (!entries.length) return;
+  const total = entries.reduce((s,[,v])=>s+v,0);
+  const labels = entries.map(([k]) => k.length > 22 ? k.substring(0,20)+'…' : k);
+  const values = entries.map(([,v]) => total > 0 ? parseFloat(((v/total)*100).toFixed(1)) : 0);
+  const BAR_COLORS = [
+    '#7E1F2C','#9E3340','#B05060','#CDA736','#8E6E1C',
+    '#5B7FA0','#7A5AA0','#2E9E5B'
+  ];
+  const ch = new Chart(el, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets:[{
+        data: values,
+        backgroundColor: BAR_COLORS.slice(0, entries.length),
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options:{
+      indexAxis: 'x',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins:{
+        legend:{ display:false },
+        datalabels:{
+          display: true,
+          anchor:'end', align:'top',
+          color:'var(--ink-700)',
+          font:{ family:'IBM Plex Mono', size:9, weight:'500' },
+          formatter: v => v.toFixed(0)+'%'
+        },
+        tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y.toFixed(1)}%` }}
+      },
+      scales:{
+        x:{
+          grid:{ display:false },
+          ticks:{ font:{family:'Libre Franklin',size:9}, color:'#6B5E57',
+                  maxRotation:35, minRotation:25 }
+        },
+        y:{
+          beginAtZero:true,
+          grid:{ color:'#E5DAC7' },
+          ticks:{ font:{family:'IBM Plex Mono',size:9}, color:'#9E8E87',
+                  callback: v => v+'%' }
+        }
       }
     }
   });
