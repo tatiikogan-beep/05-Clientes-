@@ -41,10 +41,25 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .upload-status{font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap;}
 
 /* ── TABS NAV */
-.tabs-nav{background:var(--sand-100);border-bottom:2px solid var(--border);padding:10px 40px 0;display:flex;gap:8px;overflow-x:auto;position:sticky;top:96px;z-index:90;box-shadow:var(--shadow-xs);}
-.tab-btn{font-family:'Libre Franklin',sans-serif;font-size:11px;font-weight:500;color:var(--ink-500);padding:8px 14px;border:1px solid var(--border);background:var(--card);cursor:pointer;border-radius:var(--r-md) var(--r-md) 0 0;border-bottom:2px solid var(--border);margin-bottom:-2px;white-space:nowrap;transition:color .15s,background .15s,border-color .15s,box-shadow .15s;letter-spacing:.01em;box-shadow:var(--shadow-xs);}
-.tab-btn:hover{color:var(--wine-600);background:var(--gold-50);border-color:var(--border-strong);}
-.tab-btn.active{color:var(--wine-600);background:var(--card);border-color:var(--border-strong);border-bottom-color:var(--card);font-weight:600;box-shadow:0 -2px 6px rgba(90,40,30,.06);}
+.tabs-nav{background:var(--sand-100);border-bottom:2px solid var(--border);padding:10px 32px 0;display:flex;gap:6px;overflow-x:auto;position:sticky;top:96px;z-index:90;box-shadow:var(--shadow-xs);}
+.tab-btn{font-family:'Libre Franklin',sans-serif;font-size:11px;font-weight:500;padding:9px 0;border:1px solid var(--border);background:var(--card);cursor:pointer;border-radius:var(--r-md) var(--r-md) 0 0;border-bottom:2px solid var(--border);margin-bottom:-2px;white-space:nowrap;transition:color .15s,background .15s,border-color .15s,box-shadow .15s;letter-spacing:.01em;box-shadow:var(--shadow-xs);flex:1;text-align:center;color:var(--ink-500);}
+.tab-btn:hover{filter:brightness(.94);}
+.tab-btn.active{font-weight:600;border-bottom-color:transparent;box-shadow:0 -2px 6px rgba(90,40,30,.08);}
+/* per-tab colors */
+.tab-btn[data-tab="geral"]       {background:#F7F2E9;color:#4A3E38;}
+.tab-btn[data-tab="geral"].active{background:#fff;color:#2A2420;border-color:#C8B89A;border-bottom-color:#fff;}
+.tab-btn[data-tab="trabalhista"]       {background:#F5E8EA;color:#7E1F2C;}
+.tab-btn[data-tab="trabalhista"].active{background:#fff;color:#7E1F2C;border-color:#D8868E;border-bottom-color:#fff;}
+.tab-btn[data-tab="civel_etc"]       {background:#E8EEF5;color:#2A4A6E;}
+.tab-btn[data-tab="civel_etc"].active{background:#fff;color:#2A4A6E;border-color:#8AAAC8;border-bottom-color:#fff;}
+.tab-btn[data-tab="hospitalar"]       {background:#E8F3F8;color:#1A5F82;}
+.tab-btn[data-tab="hospitalar"].active{background:#fff;color:#1A5F82;border-color:#6AAAC8;border-bottom-color:#fff;}
+.tab-btn[data-tab="trib_adm"]       {background:#F0EBF8;color:#4A2A82;}
+.tab-btn[data-tab="trib_adm"].active{background:#fff;color:#4A2A82;border-color:#9A7AC8;border-bottom-color:#fff;}
+.tab-btn[data-tab="amb_reg"]       {background:#E8F5EE;color:#1A6A3E;}
+.tab-btn[data-tab="amb_reg"].active{background:#fff;color:#1A6A3E;border-color:#6AC89A;border-bottom-color:#fff;}
+.tab-btn[data-tab="digital"]       {background:#EEEEF8;color:#2A2A82;}
+.tab-btn[data-tab="digital"].active{background:#fff;color:#2A2A82;border-color:#8A8AC8;border-bottom-color:#fff;}
 
 /* ── PAGE */
 .page{max-width:1280px;margin:0 auto;padding:28px 32px 48px;}
@@ -173,12 +188,12 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 <nav class="tabs-nav" id="tabsNav">
   <button class="tab-btn active" data-tab="geral">Geral</button>
   <button class="tab-btn" data-tab="trabalhista">Trabalhista</button>
-  <button class="tab-btn" data-tab="civel_etc">Cível · Penal · Prev. · Soc.</button>
+  <button class="tab-btn" data-tab="civel_etc">Cível</button>
   <button class="tab-btn" data-tab="hospitalar">Hospitalar</button>
-  <button class="tab-btn" data-tab="trib_adm">Tributária · Administrativo</button>
-  <button class="tab-btn" data-tab="amb_reg">Ambiental · Regulatório</button>
+  <button class="tab-btn" data-tab="trib_adm">Tributário</button>
+  <button class="tab-btn" data-tab="amb_reg">Regulatório</button>
   <button class="tab-btn" data-tab="digital">Digital</button>
-  <button class="tab-btn" data-tab="importar" style="margin-left:auto;color:var(--ink-300);font-size:10px;letter-spacing:.08em;">⬆ Importar Dados</button>
+  <button class="tab-btn" data-tab="importar" style="flex:0;padding:9px 16px;background:var(--sand-200);color:var(--ink-400,#7A6E68);font-size:10px;letter-spacing:.08em;margin-left:auto;">⬆ Importar Dados</button>
 </nav>
 
 <!-- MAIN -->
@@ -268,7 +283,7 @@ Chart.register(ChartDataLabels);
 
 // ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 const SB_URL = 'https://gvtsmmqxzpfcvtrhogym.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dHNtbXF4enBmY3Z0cmhvZ3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MjM0MjgsImV4cCI6MjA5NzA5OTQyOH0.7VhlHMMUGDg-VWi4X48DTME5NOu8wdThLG0NLHNMU-k';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dHNtbXF4enBmY3Z0cmhvZ3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2OTg5MjIsImV4cCI6MjA2NjI3NDkyMn0.NU1amZx2aJJeJH_YIH_vOHkz8Gms5jwJqzJXEIoP0SQ';
 const SB_ROW = 'painel05';
 
 // ── SEED DATA (embedded from current spreadsheets) ──────────────────────────
