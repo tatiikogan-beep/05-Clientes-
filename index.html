@@ -95,7 +95,15 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .kpi-n{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:500;color:var(--ink-900);line-height:1;}
 .kpi-lbl{font-size:11px;color:var(--ink-500);margin-top:3px;}
 .kpi-meta{font-size:11px;color:var(--ink-300);margin-top:3px;}
+.kpi-pct{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--wine-500);margin-left:7px;}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green-500);margin-right:4px;vertical-align:middle;}
+
+/* -- TOTAL BOX (aba Geral) */
+.total-box{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:18px 24px;margin-bottom:22px;position:relative;overflow:hidden;}
+.total-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--wine-600),var(--gold-400));}
+.total-lbl{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-600);margin-bottom:6px;}
+.total-n{font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:500;color:var(--ink-900);line-height:1;}
+.total-sub{font-size:11px;color:var(--ink-500);margin-top:5px;}
 
 /* ── CHART CARD */
 .chart-card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:22px 26px;margin-bottom:24px;}
@@ -115,6 +123,7 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .grp-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;}
 .grp-n{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:500;color:#fff;line-height:1;text-align:right;}
 .grp-n-lbl{font-size:11px;color:rgba(255,255,255,.6);text-align:right;margin-top:2px;}
+.grp-pct{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold-400);text-align:right;margin-top:4px;}
 .grp-body{display:grid;grid-template-columns:1fr 1fr;gap:0;}
 .grp-col{padding:18px 22px;}
 .grp-col:first-child{border-right:1px solid var(--border);}
@@ -623,6 +632,12 @@ function renderAll() {
   });
 }
 
+// ── PERCENTUAL SOBRE O TOTAL DA ABA ──────────────────────────────────────────
+function fmtPct(valor, total) {
+  if (!total) return '—';
+  return ((valor / total) * 100).toFixed(1) + '%';
+}
+
 // ── COLOR MAP ─────────────────────────────────────────────────────────────────
 const NAT_COLORS = {
   'Trabalhista':    '#9E3340',
@@ -667,8 +682,18 @@ function renderTab(tabKey, label, data) {
 
 // ── BUILD TAB HTML ────────────────────────────────────────────────────────────
 function buildTabHTML(tabKey, label, data) {
-  const total = (data.total_proc||0).toLocaleString('pt-BR');
+  const totalNum = data.total_proc || 0;
+  const total = totalNum.toLocaleString('pt-BR');
   const grupos = data.grupos || [];
+  const pctTotal = v => fmtPct(v, totalNum);
+
+  // caixa com o total da aba (base de calculo dos percentuais)
+  const totalBox = tabKey === 'geral' ? `
+    <div class="total-box">
+      <div class="total-lbl">Total de Processos Ativos</div>
+      <div class="total-n">${total}</div>
+      <div class="total-sub">processos com status Ativo ou Suspenso · base de cálculo dos percentuais</div>
+    </div>` : '';
 
   // KPI bar
   let kpiHtml = '';
@@ -678,7 +703,7 @@ function buildTabHTML(tabKey, label, data) {
       <div class="kpi-card">
         <div class="kpi-rank">${ranks[i]} · Lugar</div>
         <div class="kpi-grupo">${g.grupo}</div>
-        <div class="kpi-n">${(g.total||0).toLocaleString('pt-BR')}</div>
+        <div class="kpi-n">${(g.total||0).toLocaleString('pt-BR')}<span class="kpi-pct">${pctTotal(g.total||0)}</span></div>
         <div class="kpi-lbl">processos ativos / suspensos</div>
         <div class="kpi-meta"><span class="dot"></span>${g.num_clientes} empresa(s)</div>
       </div>`;
@@ -697,7 +722,8 @@ function buildTabHTML(tabKey, label, data) {
     let empresaOptions = '<option value="">Todas as Empresas</option>';
     empresaNames.forEach(e => {
       const n = e.length > 45 ? e.substring(0,43)+'…' : e;
-      empresaOptions += `<option value="${e}">${n} (${(empresas[e].total||0).toLocaleString('pt-BR')})</option>`;
+      const t = empresas[e].total || 0;
+      empresaOptions += `<option value="${e}">${n} (${t.toLocaleString('pt-BR')} · ${pctTotal(t)})</option>`;
     });
     const natEntries = Object.entries(g.natureza||{}).sort((a,b)=>b[1]-a[1]);
     const totalNat   = natEntries.reduce((s,[,v])=>s+v,0);
@@ -744,6 +770,7 @@ function buildTabHTML(tabKey, label, data) {
           <div style="text-align:right;flex-shrink:0;padding-left:16px;">
             <div class="grp-n" id="grp-n-${tabKey}-${i}">${(g.total||0).toLocaleString('pt-BR')}</div>
             <div class="grp-n-lbl">processos ativos</div>
+            <div class="grp-pct" id="grp-pct-${tabKey}-${i}">${pctTotal(g.total||0)} do total</div>
           </div>
         </div>
         <div class="grp-body">
@@ -764,6 +791,7 @@ function buildTabHTML(tabKey, label, data) {
   });
 
   return `
+    ${totalBox}
     <div class="sec-label">${label}</div>
     <div class="sec-title">Top 5 Grupos Econômicos — Processos Ativos e Suspensos</div>
     <div class="kpi-bar">${kpiHtml}</div>
@@ -937,6 +965,10 @@ function filterEmpresa(tabKey, idx, empresaName) {
   // ── update total count
   const nEl = document.getElementById('grp-n-' + tabKey + '-' + idx);
   if (nEl) nEl.textContent = srcTotal.toLocaleString('pt-BR');
+
+  // ── update percentual sobre o total da aba
+  const pctEl = document.getElementById('grp-pct-' + tabKey + '-' + idx);
+  if (pctEl) pctEl.textContent = fmtPct(srcTotal, DASH[tabKey].total_proc || 0) + ' do total';
 
   // ── update natureza list
   const natEl = document.getElementById('nat-list-' + tabKey + '-' + idx);
