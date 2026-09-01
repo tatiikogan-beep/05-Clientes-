@@ -104,6 +104,10 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .total-lbl{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-600);margin-bottom:6px;}
 .total-n{font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:500;color:var(--ink-900);line-height:1;}
 .total-sub{font-size:11px;color:var(--ink-500);margin-top:5px;}
+.total-nats{display:flex;flex-wrap:wrap;gap:9px 20px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+.total-nat{font-size:12px;color:var(--ink-700);display:inline-flex;align-items:center;gap:6px;}
+.total-nat strong{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--ink-900);}
+.total-nat-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
 
 /* ── CHART CARD */
 .chart-card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:22px 26px;margin-bottom:24px;}
@@ -689,13 +693,19 @@ function buildTabHTML(tabKey, label, data) {
   // nos cards do ranking o percentual usa virgula como separador decimal
   const pctBase = v => fmtPct(v, totalNum).replace('.', ',');
 
-  // caixa com o total da aba (base de calculo dos percentuais)
-  const totalBox = tabKey === 'geral' ? `
+  // caixa com o total da aba (base de calculo dos percentuais).
+  // Fora da aba Geral, detalha a quantidade de processos de cada natureza da aba.
+  const natTotais = Object.entries(data.natureza_total || {}).sort((a,b) => b[1]-a[1]);
+  const natDetalhe = (tabKey === 'geral' || natTotais.length === 0) ? '' : `
+      <div class="total-nats">${natTotais.map(([n,v]) => `
+        <span class="total-nat"><span class="total-nat-dot" style="background:${NAT_COLORS[n]||'#9E8E87'}"></span>${n} <strong>${v.toLocaleString('pt-BR')}</strong></span>`).join('')}
+      </div>`;
+  const totalBox = `
     <div class="total-box">
       <div class="total-lbl">Total de Processos Ativos</div>
       <div class="total-n">${total}</div>
-      <div class="total-sub">processos com status Ativo ou Suspenso · base de cálculo dos percentuais</div>
-    </div>` : '';
+      <div class="total-sub">processos com status Ativo ou Suspenso · base de cálculo dos percentuais</div>${natDetalhe}
+    </div>`;
 
   // KPI bar
   let kpiHtml = '';
