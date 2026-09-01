@@ -58,8 +58,6 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .tab-btn[data-tab="trib_adm"].active{background:#fff;color:#4A2A82;border-color:#9A7AC8;border-bottom-color:#fff;}
 .tab-btn[data-tab="amb_reg"]       {background:#E8F5EE;color:#1A6A3E;}
 .tab-btn[data-tab="amb_reg"].active{background:#fff;color:#1A6A3E;border-color:#6AC89A;border-bottom-color:#fff;}
-.tab-btn[data-tab="digital"]       {background:#EEEEF8;color:#2A2A82;}
-.tab-btn[data-tab="digital"].active{background:#fff;color:#2A2A82;border-color:#8A8AC8;border-bottom-color:#fff;}
 
 /* ── PAGE */
 .page{max-width:1280px;margin:0 auto;padding:28px 32px 48px;}
@@ -192,7 +190,6 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
   <button class="tab-btn" data-tab="hospitalar">Hospitalar</button>
   <button class="tab-btn" data-tab="trib_adm">Tributário</button>
   <button class="tab-btn" data-tab="amb_reg">Regulatório</button>
-  <button class="tab-btn" data-tab="digital">Digital</button>
   <button class="tab-btn" data-tab="importar" style="flex:0;padding:9px 16px;background:var(--sand-200);color:var(--ink-400,#7A6E68);font-size:10px;letter-spacing:.08em;margin-left:auto;">⬆ Importar Dados</button>
 </nav>
 
@@ -227,11 +224,6 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
   <!-- TAB: AMB REG -->
   <div class="tab-pane" id="pane-amb_reg">
     <div id="content-amb_reg"></div>
-  </div>
-
-  <!-- TAB: DIGITAL -->
-  <div class="tab-pane" id="pane-digital">
-    <div id="content-digital"></div>
   </div>
 
   <!-- TAB: IMPORTAR -->
@@ -528,7 +520,6 @@ function computeDash(procRows, pedRows, cliRows) {
     hospitalar:  ['Hospitalar'],
     trib_adm:    ['Tributária','Administrativo'],
     amb_reg:     ['Ambiental','Regulatório'],
-    digital:     ['Digital'],
   };
 
   const out = {};
@@ -626,7 +617,6 @@ function renderAll() {
     hospitalar:  { label:'Hospitalar',               nats: ['Hospitalar'] },
     trib_adm:    { label:'Tributária · Administrativo', nats:['Tributária','Administrativo']},
     amb_reg:     { label:'Ambiental · Regulatório',  nats: ['Ambiental','Regulatório']},
-    digital:     { label:'Digital',                  nats: ['Digital']},
   };
   Object.entries(TAB_META).forEach(([key, meta]) => {
     renderTab(key, meta.label, DASH[key]);
