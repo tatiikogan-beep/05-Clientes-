@@ -95,7 +95,7 @@ body{font-family:'Libre Franklin',sans-serif;background:var(--sand-100);color:va
 .kpi-n{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:500;color:var(--ink-900);line-height:1;}
 .kpi-lbl{font-size:11px;color:var(--ink-500);margin-top:3px;}
 .kpi-meta{font-size:11px;color:var(--ink-300);margin-top:3px;}
-.kpi-pct{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--wine-500);margin-left:7px;}
+.kpi-pct{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--wine-500);margin-top:6px;}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green-500);margin-right:4px;vertical-align:middle;}
 
 /* -- TOTAL BOX (aba Geral) */
@@ -686,6 +686,8 @@ function buildTabHTML(tabKey, label, data) {
   const total = totalNum.toLocaleString('pt-BR');
   const grupos = data.grupos || [];
   const pctTotal = v => fmtPct(v, totalNum);
+  // nos cards do ranking o percentual usa virgula como separador decimal
+  const pctBase = v => fmtPct(v, totalNum).replace('.', ',');
 
   // caixa com o total da aba (base de calculo dos percentuais)
   const totalBox = tabKey === 'geral' ? `
@@ -703,8 +705,9 @@ function buildTabHTML(tabKey, label, data) {
       <div class="kpi-card">
         <div class="kpi-rank">${ranks[i]} · Lugar</div>
         <div class="kpi-grupo">${g.grupo}</div>
-        <div class="kpi-n">${(g.total||0).toLocaleString('pt-BR')}<span class="kpi-pct">${pctTotal(g.total||0)}</span></div>
+        <div class="kpi-n">${(g.total||0).toLocaleString('pt-BR')}</div>
         <div class="kpi-lbl">processos ativos / suspensos</div>
+        <div class="kpi-pct">${pctBase(g.total||0)} da base total</div>
         <div class="kpi-meta"><span class="dot"></span>${g.num_clientes} empresa(s)</div>
       </div>`;
   });
