@@ -504,11 +504,16 @@ function computeDash(procRows, pedRows, cliRows) {
 
   if (!procRows) return DASH; // nothing to recompute
 
-  // Filter active + suspended
-  const active = procRows.filter(r => {
-    const s = (r['Status']||'').toString().trim();
-    return s === 'Ativo' || s === 'Suspenso';
-  });
+  // Filter active + suspended.
+  // Quando a planilha nao traz a coluna Status - pesquisa ja filtrada na origem -
+  // todas as linhas sao consideradas ativas.
+  const temStatus = procRows.some(r => Object.prototype.hasOwnProperty.call(r, 'Status'));
+  const active = temStatus
+    ? procRows.filter(r => {
+        const s = (r['Status']||'').toString().trim();
+        return s === 'Ativo' || s === 'Suspenso';
+      })
+    : procRows.slice();
 
   // Build pedidos map: pasta -> [pedido, ...]
   const pedMap = {}; // pasta -> [{pedido, cliente}]
